@@ -17,9 +17,10 @@
     <arg name="depth_image"     value="/zed/zed_node/depth/depth_registered"/>
     <arg name="image"           value="/zed/zed_node/rgb/image_rect_color"/>
 
+    <arg name="map_img_name" default="$(find svea_core)/maps/sml.yaml"/>
+    <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_img_name)"/>
 
     <!-- Nodes -->
-
     <include file="$(find zed_wrapper)/launch/zed.launch">
         <arg name="camera_name" value="zed"/>
     </include>

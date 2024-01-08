@@ -25,25 +25,26 @@
     <!-- Nodes -->
     <node name="object_detect" pkg="svea_vision" type="object_detect.py" output="screen">
         <!-- Options -->
-        <param name="use_cuda"          value="$(arg use_cuda)" />
-        <param name="enable_bbox_image" value="$(arg enable_bbox_image)" />
+        <param name="use_cuda"          value="$(arg use_cuda)"/>
+        <param name="enable_bbox_image" value="$(arg enable_bbox_image)"/>
         <!-- Topics -->
-        <param name="sub_image"         value="$(arg image)" />
-        <param name="pub_objects"       value="$(arg objects)" />
-        <param name="pub_bbox_image"    value="$(arg bbox_image)" />
+        <param name="sub_image"         value="$(arg image)"/>
+        <param name="pub_objects"       value="$(arg objects)"/>
+        <param name="pub_bbox_image"    value="$(arg bbox_image)"/>
         <!-- Auxiliary -->
-        <param name="only_objects"      value="$(arg only_objects)" />
-        <param name="skip_objects"      value="$(arg skip_objects)" />
-        <param name="max_age"           value="$(arg max_age)" />
-        <param name="model_path"        value="$(arg model_path)" />
+        <param name="only_objects"      value="$(arg only_objects)"/>
+        <param name="skip_objects"      value="$(arg skip_objects)"/>
+        <param name="max_age"           value="$(arg max_age)"/>
+        <param name="model_path"        value="$(arg model_path)"/>
     </node>
 
     <node name="object_pose" pkg="svea_vision" type="object_pose.py" output="screen">
         <!-- Topics -->
-        <param name="sub_depth_image"   value="$(arg depth_image)" />
-        <param name="sub_objects"       value="$(arg objects)" />
-        <param name="pub_objectposes"   value="$(arg objectposes)" />
+        <param name="sub_depth_image"   value="$(arg depth_image)"/>
+        <param name="sub_objects"       value="$(arg objects)"/>
+        <param name="pub_objectposes"   value="$(arg objectposes)"/>
         <param name="frame_id"          value="$(arg frame_id)"/>
     </node>
 
+    <node name="object_state_estimation" pkg="svea_vision" type="object_state_estimation.py" output="screen"/> 
 </launch>
