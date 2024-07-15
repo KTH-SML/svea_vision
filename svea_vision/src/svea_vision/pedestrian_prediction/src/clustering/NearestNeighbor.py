@@ -4,7 +4,10 @@ import os
 import pickle
 from annoy import AnnoyIndex
 
-ROOT = os.getcwd()
+ROOT = os.path.dirname(os.path.abspath(__file__))
+while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
+    ROOT = os.path.dirname(ROOT)
+
 ROOT_RESOURCES = os.path.join(ROOT, 'resources')
 
 

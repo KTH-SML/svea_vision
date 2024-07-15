@@ -12,11 +12,12 @@ LABELS = {
     "unknown": 6,
 }
 
-CWD = os.getcwd()
-while CWD.rsplit("/", 1)[-1] != "Pedestrian_Project":
+CWD = os.path.dirname(os.path.abspath(__file__))
+while CWD.rsplit("/", 1)[-1] != "pedestrian_prediction":
     CWD = os.path.dirname(CWD)
 
 ROOT = CWD + "/resources"
+
 
 
 def angle_between_angles(a1: float, a2: float):

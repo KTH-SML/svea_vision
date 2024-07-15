@@ -3,8 +3,10 @@ import pickle
 import os
 
 
-ROOT = os.getcwd()
-
+ROOT = os.path.dirname(os.path.abspath(__file__))
+while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
+    ROOT = os.path.dirname(ROOT)
+    
 def load_data(filename: str = "sind.pkl", filepath: str = ROOT + "/resources/") -> np.ndarray:
     """Load previously pickled data
 

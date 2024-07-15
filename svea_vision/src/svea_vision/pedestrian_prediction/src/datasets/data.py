@@ -307,29 +307,31 @@ class ROSData(BaseData):
         self.config = config
 
         # Load and preprocess data
-        self.all_df = self.load_all(
-            config["data_dir"], pattern=config["pattern"]
-        )  # 508644
+        self.all_df = pd.DataFrame(columns=["x", "y", "vx", "vy", "ax", "ay"])
 
-        max_seq_len = self.all_df.groupby(by="track_id").size().max()  # 11726 8_7_1_P1
-        self.max_seq_len = (
-            config["data_chunk_len"] if config["data_chunk_len"] != 0 else max_seq_len
-        )
+        # self.all_df = self.load_all(
+        #     config["data_dir"], pattern=config["pattern"]
+        # )  # 508644
 
-        if config["data_chunk_len"] is not None:
-            self.all_df = self.assign_chunk_idx(self.all_df, config["data_chunk_len"])
-            # Remove chunks with less than 2 points
-            self.all_df = self.remove_small_chunks(self.all_df, min_size=2)
-            # Reassign chunk indices
-            self.all_df = self.reassign_chunk_indices(self.all_df)
-        else:
-            self.all_df["data_chunk_len"] = self.all_df["unique_int_id"]
+        # max_seq_len = self.all_df.groupby(by="track_id").size().max()  # 11726 8_7_1_P1
+        # self.max_seq_len = (
+        #     config["data_chunk_len"] if config["data_chunk_len"] != 0 else max_seq_len
+        # )
 
-        self.all_df["unique_int_id"], _ = pd.factorize(self.all_df["track_id"])
-        self.all_df = self.all_df.set_index("data_chunk_len")
-        self.all_IDs = (
-            self.all_df.index.unique()
-        )  # all sample (session) IDs # 13088 # CHECK THE TIMESTAMP
+        # if config["data_chunk_len"] is not None:
+        #     self.all_df = self.assign_chunk_idx(self.all_df, config["data_chunk_len"])
+        #     # Remove chunks with less than 2 points
+        #     self.all_df = self.remove_small_chunks(self.all_df, min_size=2)
+        #     # Reassign chunk indices
+        #     self.all_df = self.reassign_chunk_indices(self.all_df)
+        # else:
+        #     self.all_df["data_chunk_len"] = self.all_df["unique_int_id"]
+
+        # self.all_df["unique_int_id"], _ = pd.factorize(self.all_df["track_id"])
+        # self.all_df = self.all_df.set_index("data_chunk_len")
+        # self.all_IDs = (
+        #     self.all_df.index.unique()
+        # )  # all sample (session) IDs # 13088 # CHECK THE TIMESTAMP
 
         self.feature_names = ["x", "y", "vx", "vy", "ax", "ay"]
         self.feature_df = self.all_df[self.feature_names]

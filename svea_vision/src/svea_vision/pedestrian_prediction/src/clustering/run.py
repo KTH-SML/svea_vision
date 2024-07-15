@@ -19,7 +19,7 @@ from src.datasets.data import Normalizer
 from src.datasets.plot import SinDMap
 from src.clustering.Clusters import HDBSCANCluster
 from src.clustering.NearestNeighbor import AnnoyModel
-from src.reachability_analysis.labeling_oracle import LabelingOracleSINDData
+from src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData
 
 from src.utils.load_data import load_task_datasets
 from src.transformer_model.model import create_model, evaluate
@@ -29,7 +29,10 @@ import logging
 import logging
 import json
 
-ROOT = os.getcwd()
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
+    ROOT = os.path.dirname(ROOT)
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s : %(message)s", level=logging.INFO
@@ -136,7 +139,7 @@ def load_config(folder='experiments', model_file='SINDDataset_pretrained_2024-04
     return config
 
 
-def get_embedding(config: dict, data_oracle: LabelingOracleSINDData):
+def get_embedding(config: dict, data_oracle: LabelingOracleSVEAData):
     # Initialize data generators
     task_dataset_class, collate_fn = load_task_datasets(config)
 
@@ -162,7 +165,7 @@ def get_embedding(config: dict, data_oracle: LabelingOracleSINDData):
     return embedding_data
 
 
-def get_cluster(config:dict, data_oracle: LabelingOracleSINDData):
+def get_cluster(config:dict, data_oracle: LabelingOracleSVEAData):
     embedding = get_embedding(config, data_oracle)["embeddings"][0]
     nn_model = AnnoyModel(config=config)
     return nn_model.get(embedding)

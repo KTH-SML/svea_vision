@@ -15,8 +15,7 @@ project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'
 # Add that directory to sys.path
 sys.path.append(project_dir)
 
-from src.datasets.plot import SinDMap
-from src.reachability_analysis.labeling_oracle import LabelingOracleSINDData, LABELS, LabelingOracleSVEAData
+from src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData, LABELS, LabelingOracleSVEAData
 from src.reachability_analysis.operations import (
     visualize_zonotopes,
     input_zonotope,
@@ -30,8 +29,11 @@ from src.reachability_analysis.utils import load_data
 
 from src.clustering.run import get_cluster, load_config
 
-ROOT_PROJECT = os.getcwd()
-ROOT_RESOURCES = os.getcwd() + "/resources"
+ROOT_PROJECT = os.path.dirname(os.path.abspath(__file__))
+while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
+    ROOT_PROJECT = os.path.dirname(ROOT)
+
+ROOT_RESOURCES = ROOT_PROJECT + "/resources"
 DATADIR = "SinD/Data"
 REVERSED_LABELS = {value: key for key, value in LABELS.items()}
 COLORS = [
@@ -61,7 +63,7 @@ def reachability_for_specific_position_and_mode(
     _suppress_prints: bool = True,
     d: np.ndarray = None,
     sim: bool = False,
-    sind: LabelingOracleSINDData = None,
+    sind: LabelingOracleSVEAData = None,
     clustering: bool = False,
 ):
     """Get reachable set for a specific position, mode and starting velocity
@@ -76,7 +78,7 @@ def reachability_for_specific_position_and_mode(
     _ax : plt.Axes
     _labels : list
     _suppress_prints : bool
-    _sind_ : LabelingOracleSINDData
+    _sind_ : LabelingOracleSVEAData
     _d : np.ndarray
     """
     input_len = np.array(d[0]).shape[1] # (label_id, trajectory_id, input_len, features)
@@ -305,7 +307,7 @@ def scenario_func(trajectory: np.array ,pos: np.ndarray, vel: np.ndarray, config
 def get_data(_load: bool = False, _sind: any = None, config: dict = None, test_case: tuple = (0, 'Label')):
     """Calculate the data separation to each class"""
     if not _sind:
-        _sind = LabelingOracleSINDData(config)
+        _sind = LabelingOracleSVEAData(config)
 
     if os.path.exists(os.path.join(config['output_dir'], 'clusters')):
         clusters_root = os.path.join(config['output_dir'], 'clusters')
@@ -373,7 +375,7 @@ def get_test_label(test_labeling_oracle):
 def get_test_config(config: dict, test_name: str = ""):
     config_test = config.copy()
     config_test['data_dir'] = ROOT_RESOURCES + f'/test/{test_name}'
-    test_labeling_oracle = LabelingOracleSINDData(config_test)
+    test_labeling_oracle = LabelingOracleSVEAData(config_test)
 
     return test_labeling_oracle, config_test
 

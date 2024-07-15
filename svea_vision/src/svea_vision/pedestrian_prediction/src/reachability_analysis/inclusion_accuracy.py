@@ -14,8 +14,13 @@ import matplotlib.ticker as tck
 
 REVERSED_LABELS = {value: key for key, value in LABELS.items()}
 
-ROOT_TEST = os.getcwd() + "/resources/test/"
+ROOT = os.path.dirname(os.path.abspath(__file__))
+while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
+    ROOT = os.path.dirname(ROOT)
+
+ROOT_TEST = ROOT + "/resources/test/"
 DATASET = "8_02_1"
+#TODO remove these? Or remove the whole file?
 RA_PATH = "/SinD/reachable_sets.pkl"
 RAB_PATH = "/SinD/reachable_base_sets.pkl"
 

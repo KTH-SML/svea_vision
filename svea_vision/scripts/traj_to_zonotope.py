@@ -1,18 +1,20 @@
+#! /usr/bin/env python3
 
-from src.reachability_analysis.simulation import get_test_config, get_test_label, get_cluster, get_initial_conditions, reachability_for_all_modes
-from src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData
-from src.datasets.data import SVEAData, ROSData, SINDData
-from src.transformer_model.model import create_model, evaluate
+from svea_vision.pedestrian_prediction.src.reachability_analysis.simulation import get_test_config, get_test_label, get_cluster, get_initial_conditions, reachability_for_all_modes
+from svea_vision.pedestrian_prediction.src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData
+from svea_vision.pedestrian_prediction.src.datasets.data import SVEAData, ROSData, SINDData
+from svea_vision.pedestrian_prediction.src.transformer_model.model import create_model, evaluate
 import json
 import logging
 import os
 import rospy
 from torch.utils.data import DataLoader
-from src.datasets.data import data_factory, Normalizer
-from src.datasets.masked_datasets import collate_unsuperv
-from src.utils.load_data import load_task_datasets
-from src.clustering.NearestNeighbor import AnnoyModel
+from svea_vision.pedestrian_prediction.src.datasets.data import data_factory, Normalizer
+from svea_vision.pedestrian_prediction.src.datasets.masked_datasets import collate_unsuperv
+from svea_vision.pedestrian_prediction.src.utils.load_data import load_task_datasets
+from svea_vision.pedestrian_prediction.src.clustering.NearestNeighbor import AnnoyModel
 import numpy as np
+from svea_vision_msgs.msg import PersonState, PersonStateArray
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s : %(message)s", level=logging.INFO
@@ -23,24 +25,33 @@ logger = logging.getLogger(__name__)
 class TrajToZonotope:
 
     def __init__(self):
-        self.config_path = '/home/sam/Desktop/Pedestrian_Project/config-ros.json'
+        # TODO remove hard code
+
+        CWD = os.path.dirname(os.path.abspath(__file__))
+        while CWD.rsplit("/", 1)[-1] != "pedestrian_prediction":
+            CWD = os.path.dirname(CWD)
+
+        self.config_path = f'{CWD}/resources/configuration.json'
 
         with open(self.config_path) as cnfg:
             self.config = json.load(cnfg)
 
-        ROOT_RESOURCES = os.getcwd() + "/resources"
+        ROOT_RESOURCES = CWD + "/resources"
 
         self.config['original_data'] = False
         self.config['online_data'] = True
         self.config['pattern'] = None
-        self.config['data_dir'] = '/home/sam/Desktop/Pedestrian_Project/bags'
         self.config['data_class'] = 'svea'
         self.config['eval_only'] = True
         self.config['val_ratio'] = 1
-        self.config['output_dir'] = 'experiments/ROS_experiment_2024-07-08_16-51-06_FOz/eval'
 
         self.data_oracle = ROSData(self.config)
         self.nn_model = AnnoyModel(config=self.config)
+
+        rospy.init_node("traj_to_zonotope", anonymous=True)
+        self.subscriber = rospy.Subscriber("/pedestrian_flow_estimate/pedestrian_flow_estimate", PersonStateArray, self._callback, queue_size=10)
+        self.start()
+
 
 
     @staticmethod
@@ -67,14 +78,14 @@ class TrajToZonotope:
         return (top_left[0], top_left[1]), (bottom_right[0], bottom_right[1])
 
 
-    def listener(self):
+    def start(self):
         """Subscribes to the topic containing only detected
         persons and applies the function __callback."""
 
         while not rospy.is_shutdown():
             rospy.spin()
 
-    def callback(self, msg):
+    def _callback(self, msg):
         """This method is a callback function that is triggered when a message is received.
         It interpolates person locations, stores the states of persons, and publishes
         the estimated person states to a 'person_state_estimation/person_states' topic.
@@ -84,7 +95,7 @@ class TrajToZonotope:
         :param msg: message containing the detected persons
         :return: None"""
 
-        # self.data_oracle.process_message(msg)
+        self.data_oracle.process_message(msg)
         val_data = self.data_oracle.feature_df
 
         # Pre-process features
@@ -130,5 +141,5 @@ class TrajToZonotope:
 if __name__ == "__main__":
     
     traj_to_zonotope = TrajToZonotope()
-    traj_to_zonotope.callback('msg')
+
 
