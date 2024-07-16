@@ -17,7 +17,6 @@ sys.path.append(project_dir)
 
 from src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData, LABELS, LabelingOracleSVEAData
 from src.reachability_analysis.operations import (
-    visualize_zonotopes,
     input_zonotope,
     create_M_w,
     zonotope_area,
@@ -29,11 +28,11 @@ from src.reachability_analysis.utils import load_data
 
 from src.clustering.run import get_cluster, load_config
 
-ROOT_PROJECT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.abspath(__file__))
 while ROOT.rsplit("/", 1)[-1] != "pedestrian_prediction":
-    ROOT_PROJECT = os.path.dirname(ROOT)
+    ROOT = os.path.dirname(ROOT)
 
-ROOT_RESOURCES = ROOT_PROJECT + "/resources"
+ROOT_RESOURCES = ROOT + "/resources"
 DATADIR = "SinD/Data"
 REVERSED_LABELS = {value: key for key, value in LABELS.items()}
 COLORS = [

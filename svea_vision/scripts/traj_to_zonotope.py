@@ -28,15 +28,18 @@ class TrajToZonotope:
         # TODO remove hard code
 
         CWD = os.path.dirname(os.path.abspath(__file__))
-        while CWD.rsplit("/", 1)[-1] != "pedestrian_prediction":
+        print(CWD)
+        while CWD.rsplit("/", 1)[-1] != "svea_vision":
             CWD = os.path.dirname(CWD)
 
-        self.config_path = f'{CWD}/resources/configuration.json'
+        self.config_path = f'{CWD}/src/svea_vision/pedestrian_prediction/resources/configuration.json'
 
         with open(self.config_path) as cnfg:
             self.config = json.load(cnfg)
 
         ROOT_RESOURCES = CWD + "/resources"
+
+        ROOT_RESOURCES = '/home/user/projects/ismir/src/svea_vision/svea_vision/src/svea_vision/pedestrian_prediction/resources'
 
         self.config['original_data'] = False
         self.config['online_data'] = True
@@ -139,7 +142,7 @@ class TrajToZonotope:
 
 
 if __name__ == "__main__":
-    
+    print(1234)
     traj_to_zonotope = TrajToZonotope()
 
 

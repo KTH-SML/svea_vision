@@ -10,8 +10,6 @@ from shapely.geometry import Point, Polygon
 from matplotlib.patches import Polygon as poly
 from tqdm import tqdm
 
-from src.datasets.plot import SinDMap
-
 use_pydrake = False
 
 
@@ -274,42 +272,6 @@ def reduce(z: pp.zonotope, order: int):
             G = G_unred
         return zonotope(c_z=c_z, G_z=G)
     return __girard(z, order)
-
-
-def visualize_zonotopes(z: Union[List[pp.zonotope], List[np.ndarray]], map: Union[SinDMap, plt.Axes] = None, show: bool = False,
-                        scale_axes: bool = False, plot_vertices: bool = True, _labels: list = None, _markers: list = None, 
-                        save_plot: str = None, title: str = "Zonotope visualization") -> plt.Axes:
-    """ Visualize zonotopes
-
-        Parameters:
-        -----------
-        z : List[pp.zonotope] | List[np.ndarray]
-            The z-parameter contain all the zonotopes that is 
-            going to be visualized OR a list of vertices for
-            all zonotopes that is to be plotted
-        map : SinDMap (default = None)
-            The map used for overlaying the zonotopes, if set
-            to None the map will not be showed and only the
-            zonotopes will be visible
-        show : bool (default = False)
-            Determines if the plot should be shown directly 
-            after plotting of if user writes plt.show() in
-            script where function is used
-    """
-    if type(map) == SinDMap:
-        map_ax = map.plot_areas()
-    else:
-        map_ax = map
-        
-    visualize(z, ax=map_ax, title=title, scale_axes=scale_axes,
-              show_vertices=plot_vertices, _labels=_labels, markers=_markers)
-    
-    if save_plot is not None:
-        plt.savefig(f"{save_plot}.png",  dpi=300, bbox_inches='tight')
-        
-    if show:
-        plt.tight_layout()
-        plt.show()
 
 
 """

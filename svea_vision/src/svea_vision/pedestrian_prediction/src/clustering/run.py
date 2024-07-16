@@ -12,12 +12,8 @@ project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'
 # Add that directory to sys.path
 sys.path.append(project_dir)
 
-
-from main import run as run_transformer
 from src.utils.config_setup import create_dirs
 from src.datasets.data import Normalizer
-from src.datasets.plot import SinDMap
-from src.clustering.Clusters import HDBSCANCluster
 from src.clustering.NearestNeighbor import AnnoyModel
 from src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData
 
@@ -170,30 +166,6 @@ def get_cluster(config:dict, data_oracle: LabelingOracleSVEAData):
     nn_model = AnnoyModel(config=config)
     return nn_model.get(embedding)
 
-def run_clusters(config: dict = None, load_embeddings: bool = True, load_clusters: bool = False,
-                 min_cluster_size: int = 5, min_samples: int = 30,
-                 save_data: bool = True, show_clusters: bool = True, plot_data: bool = False):
-    
-    if not load_embeddings: run_transformer(config)
-    all_data_original, all_data, all_embeddings, all_embeddings_original, all_predictions, padding_masks, target_masks = load_data(config)
-    
-    if plot_data: plot_data(padding_masks, all_data_original, all_data, all_predictions, config)
-    
-    cluster_instance = HDBSCANCluster(embeddings=all_embeddings, target=all_data_original,padding_masks=padding_masks, min_cluster_size=min_cluster_size, min_samples=min_samples, config=config)
-    
-    # Clustering
-    if not load_clusters:
-        cluster_instance = HDBSCANCluster(embeddings=all_embeddings, target=all_data_original,padding_masks=padding_masks, min_cluster_size=min_cluster_size, min_samples=min_samples, config=config)
-        cluster_instance.run(original_data=config["original_data"], remove_noise=config["remove_noise"], save_data=save_data, show_clusters=show_clusters)
-        
-        # Build and Save Neirest Neighbor Model
-        nn_model = AnnoyModel(config=config)
-        nn_model.build()
-    else:
-        cluster_instance = HDBSCANCluster(embeddings=all_embeddings, target=all_data_original,padding_masks=padding_masks, min_cluster_size=min_cluster_size, min_samples=min_samples, config=config)
-        data = cluster_instance.load_clusters(original_data=config["original_data"], remove_noise=config["remove_noise"])
-                
-        return data
 
     
 if __name__ == '__main__':
