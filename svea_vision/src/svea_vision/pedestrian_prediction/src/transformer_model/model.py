@@ -433,14 +433,9 @@ class UnsupervisedAttentionModel(BaseModel):
                 per_batch["embeddings"] = []
                 per_batch["embeddings_original"] = []
 
-                
-        print('dataloader', self.dataloader.dataset.data)
-
-
         for i, batch in enumerate(self.dataloader):
 
             X, targets, target_masks, padding_masks, IDs = batch
-            print('inside for loop', X.size(), targets.size())
             targets = targets.to(self.device)
             target_masks = target_masks.to(
                 self.device
@@ -458,8 +453,6 @@ class UnsupervisedAttentionModel(BaseModel):
             loss = self.loss_module(
                 predictions, targets, padding_masks.unsqueeze(-1)
             )  # (num_active,) individual loss (square error per element) for each active value in batch
-
-            print('model output', predictions.size(), targets.size(), loss.size())
 
             batch_loss = torch.sum(loss).cpu().item()
             mean_loss = batch_loss / len(

@@ -14,7 +14,7 @@ from svea_vision.pedestrian_prediction.src.datasets.masked_datasets import colla
 from svea_vision.pedestrian_prediction.src.utils.load_data import load_task_datasets
 from svea_vision.pedestrian_prediction.src.clustering.NearestNeighbor import AnnoyModel
 import numpy as np
-from svea_vision_msgs.msg import PersonState, PersonStateArray
+from svea_vision_msgs.msg import PersonState, PersonStateArray, Zonotope, ZonotopeArray
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s : %(message)s", level=logging.INFO
@@ -28,18 +28,16 @@ class TrajToZonotope:
         # TODO remove hard code
 
         CWD = os.path.dirname(os.path.abspath(__file__))
-        print(CWD)
         while CWD.rsplit("/", 1)[-1] != "svea_vision":
             CWD = os.path.dirname(CWD)
-
-        self.config_path = f'{CWD}/src/svea_vision/pedestrian_prediction/resources/configuration.json'
+        
+        CWD = f'{CWD}/src/svea_vision/pedestrian_prediction'        
+        self.config_path = f'{CWD}/resources/configuration.json'
 
         with open(self.config_path) as cnfg:
             self.config = json.load(cnfg)
 
         ROOT_RESOURCES = CWD + "/resources"
-
-        ROOT_RESOURCES = '/home/user/projects/ismir/src/svea_vision/svea_vision/src/svea_vision/pedestrian_prediction/resources'
 
         self.config['original_data'] = False
         self.config['online_data'] = True
@@ -47,16 +45,18 @@ class TrajToZonotope:
         self.config['data_class'] = 'svea'
         self.config['eval_only'] = True
         self.config['val_ratio'] = 1
+        self.config['output_dir'] = ROOT_RESOURCES + "/eval"
+        self.config['save_dir'] = ROOT_RESOURCES + "/eval"
+        self.config['tensorboard_dir'] = ROOT_RESOURCES + "/eval"
 
         self.data_oracle = SVEAData(self.config)
         self.nn_model = AnnoyModel(config=self.config)
 
 
         rospy.init_node("traj_to_zonotope", anonymous=True)
+        self.publisher = rospy.Publisher("~zonotopes", ZonotopeArray, queue_size=10)
         self.subscriber = rospy.Subscriber("/pedestrian_flow_estimate/pedestrian_flow_estimate", PersonStateArray, self._callback, queue_size=10)
         self.start()
-
-
 
 
 
@@ -71,17 +71,17 @@ class TrajToZonotope:
         Returns:
         (tuple): Top left and bottom right coordinates of the rectangle.
         """
-        x = z.x
+        x = z.x[:, 0]
         G = z.G
         
         # Sum of the absolute values of the generators
         extent = np.sum(np.abs(G), axis=1)
-        
+
         # Top left and bottom right coordinates
-        top_left = x - extent
-        bottom_right = x + extent
+        bottom_left = x - extent
+        top_right = x + extent
         
-        return (top_left[0], top_left[1]), (bottom_right[0], bottom_right[1])
+        return (bottom_left[0], bottom_left[1], top_right[0], top_right[1])
 
 
     def start(self):
@@ -100,7 +100,6 @@ class TrajToZonotope:
         
         :param msg: message containing the detected persons
         :return: None"""
-        print(5678)
         self.data_oracle.process_message(msg)
         val_data = self.data_oracle.feature_df
 
@@ -112,8 +111,6 @@ class TrajToZonotope:
 
         task_dataset, collate_fn = load_task_datasets(self.config)
         val_dataset = task_dataset(self.data_oracle.feature_df, self.data_oracle.all_IDs)
-        print('data oracle feature df', self.data_oracle.feature_df)
-        print('data_oracle all ids', self.data_oracle.all_IDs)
 
         # Dataloaders
         val_loader = DataLoader(
@@ -125,6 +122,7 @@ class TrajToZonotope:
             collate_fn=lambda x: collate_fn(x, max_len=self.data_oracle.max_seq_len),
         )
 
+
         model, optimizer, trainer, val_evaluator, start_epoch = create_model(
             self.config, None, val_loader, self.data_oracle, logger, device='cpu'
         )
@@ -132,19 +130,33 @@ class TrajToZonotope:
         aggr_metrics, embedding_data = evaluate(val_evaluator, config=self.config, save_embeddings=True)
 
 
-        output = []
+        zonotopeArray_msg = ZonotopeArray()
+        zonotopeArray_msg.header = msg.header
+        
         labeling_oracle = LabelingOracleSVEAData(self.config)
-        for embedding, target in zip(embedding_data['embeddings'], embedding_data['targets']):
+        #TODO are embeddings in the same order as person_states?
+        for embedding, target, person_state in zip(embedding_data['embeddings'][0], embedding_data['targets'][0], msg.personstate):
             c = self.nn_model.get(embedding)
             test_cases = {f'c_{c}': f'Cluster: {c}'}
-            pos, v = get_initial_conditions(target)
+            pos = np.array([person_state.pose.position.x, person_state.pose.position.y])
+            v = np.array([person_state.vx, person_state.vy])
             z, l, _b, _z = reachability_for_all_modes(pos=pos, vel=v, baseline=False, test_cases=test_cases, config=self.config, trajectory=target, show_plot=False, save_plot=None, _sind = labeling_oracle)
-            output.append(TrajToZonotope.zonotope_to_rectangle(z[0]))
+            rect = TrajToZonotope.zonotope_to_rectangle(z[0])
 
-        print(output)
+                    return (bottom_left[0], bottom_left[1], top_right[0], top_right[1])
+
+
+            zonotope = Zonotope()
+            zonotope.id = person_state.id
+            zonotope.counter = person_state.counter
+            zonotope.xmin = rect[0]
+            zonotope.ymin = rect[1]
+            zonotope.xmax = rect[2]
+            zonotope.ymax = rect[3]
+            zonotopeArray_msg.zonotopes.append(zonotope)
+
+        self.publisher.publish(zonotopeArray_msg)
 
 
 if __name__ == "__main__":
     traj_to_zonotope = TrajToZonotope()
-
-

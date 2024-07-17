@@ -92,7 +92,7 @@ class AnnoyModel(ApproximateNearestNeighbors):
     def get(self, data: np.array):
         self.load_index()
         if data.ndim == 3 and data.shape[0] == 1: data = data[0]
-        elif data.ndim == 3 and data.shape[0] != 1: print("Data shape must be (1, n, m) or (n, m)")
+        elif data.ndim == 3 and data.shape[0] != 1: print(f"Data shape must be (1, n, m) or (n, m), while we have shpae of {data.shape}")
         
         if data.ndim == 2: data = data.mean(0)
         indexes, distances = self.query(data)

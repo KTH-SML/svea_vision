@@ -22,6 +22,8 @@ add_message_files(
   StampedObjectPoseArray.msg
   PersonState.msg
   PersonStateArray.msg
+  Zonotope.msg
+  ZonotopeArray.msg
 )
 
 ## Generate added messages and services with any dependencies listed here

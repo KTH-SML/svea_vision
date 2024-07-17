@@ -144,9 +144,9 @@ def reachability_for_specific_position_and_mode(
                 "Area of (baseline) zonotope: ", round(zonotope_area(R_base), 4), " m^2"
             )
 
-    if not _ax:
+    if not _ax and _show_plot:
         _ax = sind.map.plot_areas()
-    if sim:
+    if sim  and _show_plot:
         ax = visualize_zonotopes(_zonos, map=_ax, show=False, _labels=_labels)
     else:
         ax = None
@@ -197,7 +197,7 @@ def reachability_for_all_modes(
         elif 'Cluster:' in _label:
             clustering = True
 
-        if ax is None:
+        if ax is None and show_plot:
             ax = _sind_.map.plot_areas()
 
             if trajectory is not None:
@@ -249,7 +249,7 @@ def reachability_for_all_modes(
     if _b:
         _labels.insert(0, "Baseline")
         _z.insert(0, _b[0])
-    visualize_zonotopes(_z, map=ax, save_plot=save_plot, show=show_plot, _labels=_labels, title=title)
+    if save_plot: visualize_zonotopes(_z, map=ax, save_plot=save_plot, show=show_plot, _labels=_labels, title=title)
     return _z, _labels, _b, _z_all
 
 

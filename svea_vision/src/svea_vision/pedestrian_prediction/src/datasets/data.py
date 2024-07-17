@@ -206,7 +206,6 @@ class SINDData(BaseData):
         self.config = config
 
         # Load and preprocess data
-        print(456, config["data_dir"], config["pattern"])
         self.all_df = self.load_all(
             config["data_dir"], pattern=config["pattern"]
         )  # 508644
@@ -565,19 +564,12 @@ class SVEAData(BaseData):
 
             self.all_df = self.preprocessed_df.copy(deep=True)
             # Remove chunks with less than 2 points
-            self.all_df = self.all_df.groupby("track_id").filter(lambda x: len(x) >= 2)
+            # self.all_df = self.all_df.groupby("track_id").filter(lambda x: len(x) >= 2)
 
             # Reassign chunk indices
             self.all_df = self.all_df.set_index("track_id")
 
             self.feature_df = self.all_df[self.feature_names]
-
-
-            print('all_df', self.all_df)
-
-
-
-
 
 
 data_factory = {"sind": SINDData, 'ros' : ROSData, 'svea' : SVEAData}
