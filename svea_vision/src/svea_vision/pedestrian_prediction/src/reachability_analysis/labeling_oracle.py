@@ -19,7 +19,6 @@ while CWD.rsplit("/", 1)[-1] != "pedestrian_prediction":
 ROOT = CWD + "/resources"
 
 
-
 def angle_between_angles(a1: float, a2: float):
     """Calculate interior angle between two angles
 
