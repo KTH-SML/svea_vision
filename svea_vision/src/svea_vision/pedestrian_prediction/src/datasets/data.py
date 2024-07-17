@@ -309,6 +309,8 @@ class ROSData(BaseData):
         # Load and preprocess data
         self.all_df = pd.DataFrame(columns=["x", "y", "vx", "vy", "ax", "ay"])
 
+        self.max_seq_len = config["data_chunk_len"]
+
         # self.all_df = self.load_all(
         #     config["data_dir"], pattern=config["pattern"]
         # )  # 508644
@@ -332,6 +334,8 @@ class ROSData(BaseData):
         # self.all_IDs = (
         #     self.all_df.index.unique()
         # )  # all sample (session) IDs # 13088 # CHECK THE TIMESTAMP
+
+        self.all_IDs = []
 
         self.feature_names = ["x", "y", "vx", "vy", "ax", "ay"]
         self.feature_df = self.all_df[self.feature_names]
@@ -516,11 +520,15 @@ class SVEAData(BaseData):
         self.set_num_processes(n_proc=n_proc)
         self.config = config
 
+        self.data_chunk_len = config['data_chunk_len']
+        self.max_seq_len = config['data_chunk_len']
+
+        self.yolo_to_track_id = {}
+
         # Load and preprocess data
-        self.all_df = pd.DataFrame(columns=["x", "y", "vx", "vy", "ax", "ay"])
-        self.max_seq_len = config["data_chunk_len"] 
+        self.preprocessed_df = pd.DataFrame(columns=["track_id", "frame_id", "timestamp_ms", "x", "y", "vx", "vy", "ax", "ay"])
         self.feature_names = ["x", "y", "vx", "vy", "ax", "ay"]
-        self.feature_df = self.all_df[self.feature_names]
+        self.all_IDs = []
         self.id_counts = {}
 
 
@@ -537,23 +545,38 @@ class SVEAData(BaseData):
             track_id = person.id
             x = person.pose.position.x
             y = person.pose.position.y
-            vx = person.velocity * np.cos(person.direction)
-            vy = person.velocity * np.sin(person.direction)
-            ax = 0
-            ay = 0
+            vx = person.vx
+            vy = person.vy 
+            ax = person.ax
+            ay = person.ay
 
             if track_id not in self.all_IDs:
                 self.all_IDs.append(track_id)
                 self.id_counts[track_id] = 0
 
             if self.id_counts[track_id] == self.max_seq_len: 
-                just_this_id = self.all_df[self.all_df['track_id'] == track_id]
-                self.all_df = self.all_df[~((self.all_df['track_id'] == track_id) & self.all_df[self.all_df['frame_id'] == min(just_this_id['frame_id'])])]
+                just_this_id = self.preprocessed_df[self.preprocessed_df['track_id'] == track_id]
+                self.preprocessed_df = self.preprocessed_df[~((self.preprocessed_df['track_id'] == track_id) & self.preprocessed_df[self.preprocessed_df['frame_id'] == min(just_this_id['frame_id'])])]
             else:
                 self.id_counts[track_id] += 1
 
             row = [track_id, frame_id, timestamp_ms, x, y, vx, vy, ax, ay]
-            self.all_df.append(row)
+            self.preprocessed_df.loc[len(self.preprocessed_df)] = row
+
+            self.all_df = self.preprocessed_df.copy(deep=True)
+            # Remove chunks with less than 2 points
+            self.all_df = self.all_df.groupby("track_id").filter(lambda x: len(x) >= 2)
+
+            # Reassign chunk indices
+            self.all_df = self.all_df.set_index("track_id")
+
+            self.feature_df = self.all_df[self.feature_names]
+
+
+            print('all_df', self.all_df)
+
+
+
 
 
 

@@ -48,12 +48,15 @@ class TrajToZonotope:
         self.config['eval_only'] = True
         self.config['val_ratio'] = 1
 
-        self.data_oracle = ROSData(self.config)
+        self.data_oracle = SVEAData(self.config)
         self.nn_model = AnnoyModel(config=self.config)
+
 
         rospy.init_node("traj_to_zonotope", anonymous=True)
         self.subscriber = rospy.Subscriber("/pedestrian_flow_estimate/pedestrian_flow_estimate", PersonStateArray, self._callback, queue_size=10)
         self.start()
+
+
 
 
 
@@ -97,7 +100,7 @@ class TrajToZonotope:
         
         :param msg: message containing the detected persons
         :return: None"""
-
+        print(5678)
         self.data_oracle.process_message(msg)
         val_data = self.data_oracle.feature_df
 
@@ -108,9 +111,9 @@ class TrajToZonotope:
             val_data = normalizer.normalize(val_data)
 
         task_dataset, collate_fn = load_task_datasets(self.config)
-        print(self.data_oracle.all_IDs)
-        val_dataset = task_dataset(self.data_oracle.feature_df, [1])
-        print(len(self.data_oracle.feature_df))
+        val_dataset = task_dataset(self.data_oracle.feature_df, self.data_oracle.all_IDs)
+        print('data oracle feature df', self.data_oracle.feature_df)
+        print('data_oracle all ids', self.data_oracle.all_IDs)
 
         # Dataloaders
         val_loader = DataLoader(
@@ -142,7 +145,6 @@ class TrajToZonotope:
 
 
 if __name__ == "__main__":
-    print(1234)
     traj_to_zonotope = TrajToZonotope()
 
 

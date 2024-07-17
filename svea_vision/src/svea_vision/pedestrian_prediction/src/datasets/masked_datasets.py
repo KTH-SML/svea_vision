@@ -41,7 +41,9 @@ class ImputationDataset(Dataset):
             mask: (seq_length, feat_dim) boolean tensor: 0s mask and predict, 1s: unaffected input
             ID: ID of sample
         """
-
+        print(self.IDs, ind)
+        print(self.IDs[ind])
+        print(self.data.loc[self.IDs[ind]].values)
         X = self.data.loc[self.IDs[ind]].values  # (seq_length, feat_dim) array
         mask = noise_mask(
             X,
