@@ -2,7 +2,7 @@
 
 from svea_vision.pedestrian_prediction.src.reachability_analysis.simulation import get_test_config, get_test_label, get_cluster, get_initial_conditions, reachability_for_all_modes
 from svea_vision.pedestrian_prediction.src.reachability_analysis.labeling_oracle import LabelingOracleSVEAData
-from svea_vision.pedestrian_prediction.src.datasets.data import SVEAData, ROSData, SINDData
+from svea_vision.pedestrian_prediction.src.datasets.data import SVEAData
 from svea_vision.pedestrian_prediction.src.transformer_model.model import create_model, evaluate
 import json
 import logging
@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 class TrajToZonotope:
 
     def __init__(self):
-        # TODO remove hard code
-
+        
         CWD = os.path.dirname(os.path.abspath(__file__))
         while CWD.rsplit("/", 1)[-1] != "svea_vision":
             CWD = os.path.dirname(CWD)
@@ -51,7 +50,6 @@ class TrajToZonotope:
 
         self.data_oracle = SVEAData(self.config)
         self.nn_model = AnnoyModel(config=self.config)
-
 
         rospy.init_node("traj_to_zonotope", anonymous=True)
         self.publisher = rospy.Publisher("~zonotopes", ZonotopeArray, queue_size=10)
@@ -142,9 +140,6 @@ class TrajToZonotope:
             v = np.array([person_state.vx, person_state.vy])
             z, l, _b, _z = reachability_for_all_modes(pos=pos, vel=v, baseline=False, test_cases=test_cases, config=self.config, trajectory=target, show_plot=False, save_plot=None, _sind = labeling_oracle)
             rect = TrajToZonotope.zonotope_to_rectangle(z[0])
-
-                    return (bottom_left[0], bottom_left[1], top_right[0], top_right[1])
-
 
             zonotope = Zonotope()
             zonotope.id = person_state.id
