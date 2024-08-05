@@ -15,6 +15,7 @@ from svea_vision.pedestrian_prediction.src.utils.load_data import load_task_data
 from svea_vision.pedestrian_prediction.src.clustering.NearestNeighbor import AnnoyModel
 import numpy as np
 from svea_vision_msgs.msg import PersonState, PersonStateArray, Zonotope, ZonotopeArray
+from svea_msgs.msg import VehicleState
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s : %(message)s", level=logging.INFO
@@ -29,7 +30,6 @@ class TrajToZonotope:
         CWD = os.path.dirname(os.path.abspath(__file__))
         while CWD.rsplit("/", 1)[-1] != "svea_vision":
             CWD = os.path.dirname(CWD)
-        
         CWD = f'{CWD}/src/svea_vision/pedestrian_prediction'        
         self.config_path = f'{CWD}/resources/configuration.json'
 
@@ -54,8 +54,9 @@ class TrajToZonotope:
         rospy.init_node("traj_to_zonotope", anonymous=True)
         self.publisher = rospy.Publisher("~zonotopes", ZonotopeArray, queue_size=10)
         self.subscriber = rospy.Subscriber("/pedestrian_flow_estimate/pedestrian_flow_estimate", PersonStateArray, self._callback, queue_size=10)
-        self.start()
+        self.svea_pos_subscriber = rospy.Subscriber("/state", VehicleState, self.update_offset, queue_size=10)
 
+        self.start()
 
 
     @staticmethod
@@ -89,13 +90,22 @@ class TrajToZonotope:
         while not rospy.is_shutdown():
             rospy.spin()
 
+
+    def update_offset(self, msg):
+        """This method is a callback function that is triggered when a state message is received.
+        It gives the data oracle knowledge of the robot's current position so it can recenter person 
+        coordinates to be consistent with the model
+
+        :param msg: message containing the current position of the SVEA
+        :return: None"""
+        self.data_oracle.x_offset = msg.x
+        self.data_oracle.y_offset = msg.y
+
+
     def _callback(self, msg):
         """This method is a callback function that is triggered when a message is received.
-        It interpolates person locations, stores the states of persons, and publishes
-        the estimated person states to a 'person_state_estimation/person_states' topic.
-        This implementation keeps sending the states of persons who have
-        dropped out of frame, because the person might have dropped randomly.
-        
+        It publishes the estimated zonotopes to a '/traj_to_zonotopes/zonotopes' topic.
+
         :param msg: message containing the detected persons
         :return: None"""
         self.data_oracle.process_message(msg)

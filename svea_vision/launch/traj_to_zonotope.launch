@@ -3,14 +3,13 @@
 
     <!-- Consumed topics -->
     <arg name="person_states" default="/pedestrian_flow_estimate/pedestrian_flow_estimate"/>
+    <arg name="state" default="/state"/>
 
     <!-- Produced topics -->
 
     <!-- Nodes -->
 
     <node name="traj_to_zonotope" pkg="svea_vision" type="traj_to_zonotope.py" output="screen"/>
-
-
     <node name='rosbag_play' pkg='rosbag' type='play' args='/svea_ws/src/marco_sam_rosbags/ismir_data_2024-06-28-11-56-17.bag'/>
 
 </launch>

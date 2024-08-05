@@ -1,2 +1,13 @@
 ultralytics
 filterpy
+
+bagpy
+pypolycontain
+shapely
+xlrd
+xlwt
+xlutils
+scikit-learn
+annoy
+tensorboard
+ray

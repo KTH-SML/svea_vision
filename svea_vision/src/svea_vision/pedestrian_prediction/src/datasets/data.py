@@ -199,7 +199,7 @@ class SVEAData(BaseData):
             (Moreover, script argument overrides this attribute)
     """
 
-    def __init__(self, config: dict, n_proc=None):
+    def __init__(self, config: dict, x_offset=0, y_offset=0, n_proc=None):
 
         n_proc = config["n_proc"] if n_proc is None else n_proc
         self.set_num_processes(n_proc=n_proc)
@@ -214,6 +214,8 @@ class SVEAData(BaseData):
         self.feature_names = ["x", "y", "vx", "vy", "ax", "ay"]
         self.all_IDs = []
         self.id_counts = {}
+        self.x_offset = x_offset
+        self.y_offset = y_offset
 
 
     def process_message(self, msg):
@@ -226,8 +228,8 @@ class SVEAData(BaseData):
 
         for person in msg.personstate:
             track_id = person.id
-            x = person.pose.position.x
-            y = person.pose.position.y
+            x = person.pose.position.x - self.x_offset
+            y = person.pose.position.y - self.y_offset
             vx = person.vx
             vy = person.vy 
             ax = person.ax

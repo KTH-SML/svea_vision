@@ -338,7 +338,6 @@ def get_data(_load: bool = False, _sind: any = None, config: dict = None, test_c
     else:
         data, labels = structure_input_data(data, labels)
 
-    print(test_case, len(data[labels == test_case[0]]), data.shape, labels.shape)
     size = len(set(labels))
     mapping = {i: i for i in range(size)}
     if -1 in labels:
