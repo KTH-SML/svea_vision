@@ -6,4 +6,8 @@ The pedestrian_prediction folder contains code for Transformer-based Behavior Cl
 
 ## Usage
 
-The node that genreates zonotopes is located in the scripts folder and is called traj_to_zonotope.py. This node subscribes to the /state and /pedestrian_flow_estimate topics and publishes the zonotope topic.
+The node that genreates zonotopes is located in the scripts folder and is called traj_to_zonotope.py. This node subscribes to the /state and /pedestrian_flow_estimate topics and publishes the /zonotope topic.
+
+## Requirements
+
+Dependencies for this code are located in svea_vision/requirements.txt
